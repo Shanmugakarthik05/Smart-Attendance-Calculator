@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
 import { Badge } from "./ui/badge";
-import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, RotateCcw } from "lucide-react";
 import { Subject } from "./SubjectManager";
 
 interface SubjectCardProps {
@@ -13,6 +13,7 @@ interface SubjectCardProps {
   minAttendance: number;
   onAttend: (id: string) => void;
   onMiss: (id: string) => void;
+  onReset: (id: string) => void;
 }
 
 export function SubjectCard({
@@ -23,6 +24,7 @@ export function SubjectCard({
   minAttendance,
   onAttend,
   onMiss,
+  onReset,
 }: SubjectCardProps) {
   const scheduledHours = subject.classesPerWeek * totalWeeks;
   const totalClasses = totalHours;
@@ -115,23 +117,34 @@ export function SubjectCard({
           </div>
         </div>
 
-        <div className="flex gap-2 pt-2">
+        <div className="space-y-2 pt-2">
+          <div className="flex gap-2">
+            <Button
+              onClick={() => onAttend(subject.id)}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+              disabled={remainingClasses <= 0}
+            >
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Attended
+            </Button>
+            <Button
+              onClick={() => onMiss(subject.id)}
+              variant="destructive"
+              className="flex-1"
+              disabled={remainingClasses <= 0}
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Missed
+            </Button>
+          </div>
           <Button
-            onClick={() => onAttend(subject.id)}
-            className="flex-1 bg-green-600 hover:bg-green-700"
-            disabled={remainingClasses <= 0}
+            onClick={() => onReset(subject.id)}
+            variant="outline"
+            className="w-full"
+            disabled={attendedClasses === 0 && missedClasses === 0}
           >
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            Attended
-          </Button>
-          <Button
-            onClick={() => onMiss(subject.id)}
-            variant="destructive"
-            className="flex-1"
-            disabled={remainingClasses <= 0}
-          >
-            <XCircle className="h-4 w-4 mr-2" />
-            Missed
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset Attendance
           </Button>
         </div>
       </CardContent>

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Download, BarChart3, PieChart, TrendingUp, Calendar } from "lucide-react";
+import { BarChart3, PieChart, TrendingUp, FileText, FileSpreadsheet } from "lucide-react";
 import { Subject } from "./SubjectManager";
 import { Holiday } from "./HolidayManager";
 import {
@@ -25,7 +25,8 @@ interface AttendanceDashboardProps {
   getCancelledHours: (subjectId: string) => number;
   totalWeeks: number;
   minAttendance: number;
-  onExport: () => void;
+  onExportCSV: () => void;
+  onExportPDF: () => void;
 }
 
 export function AttendanceDashboard({
@@ -35,7 +36,8 @@ export function AttendanceDashboard({
   getCancelledHours,
   totalWeeks,
   minAttendance,
-  onExport,
+  onExportCSV,
+  onExportPDF,
 }: AttendanceDashboardProps) {
   if (subjects.length === 0) {
     return null;
@@ -83,10 +85,16 @@ export function AttendanceDashboard({
               <BarChart3 className="h-5 w-5" />
               Overall Statistics
             </CardTitle>
-            <Button onClick={onExport} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export Data
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onExportCSV}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button variant="outline" onClick={onExportPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export PDF
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

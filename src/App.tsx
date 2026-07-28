@@ -4,6 +4,8 @@ import { SubjectManager, Subject } from "./components/SubjectManager";
 import { SubjectCard } from "./components/SubjectCard";
 import { AttendanceDashboard } from "./components/AttendanceDashboard";
 import { HolidayManager, Holiday } from "./components/HolidayManager";
+import { ThemeToggle } from "./components/ThemeToggle";
+import { Footer } from "./components/Footer";
 import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { toast } from "sonner@2.0.3";
@@ -162,6 +164,18 @@ export default function App() {
     }
   };
 
+  const handleResetSubject = (id: string) => {
+    const subject = subjects.find(s => s.id === id);
+    if (subject && confirm(`Reset attendance for ${subject.name}? This will clear all attended and missed hours.`)) {
+      setSubjects(subjects.map(s => 
+        s.id === id ? { ...s, attended: 0, missed: 0 } : s
+      ));
+      toast.success(`Attendance reset`, {
+        description: `${subject.name} attendance has been reset to 0`,
+      });
+    }
+  };
+
   const handleAddHoliday = (newHoliday: Omit<Holiday, 'id'>) => {
     const holiday: Holiday = {
       ...newHoliday,
@@ -183,8 +197,8 @@ export default function App() {
     }
   };
 
-  const handleExport = () => {
-    const data = subjects.map(subject => {
+  const getExportData = () => {
+    return subjects.map(subject => {
       const scheduledHours = subject.classesPerWeek * totalWeeks;
       const cancelledHours = getCancelledHoursForSubject(subject.id);
       const totalClasses = getTotalHoursForSubject(subject.id);
@@ -212,6 +226,10 @@ export default function App() {
         'Hours Can Still Skip': leavesRemaining,
       };
     });
+  };
+
+  const handleExportCSV = () => {
+    const data = getExportData();
 
     // Convert to CSV
     const headers = Object.keys(data[0] || {});
@@ -229,7 +247,84 @@ export default function App() {
     a.click();
     window.URL.revokeObjectURL(url);
     
-    toast.success('Data exported successfully');
+    toast.success('CSV exported successfully');
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      const data = getExportData();
+      
+      // Header
+      doc.setFontSize(18);
+      doc.text('Semester Attendance Report', 14, 20);
+      
+      doc.setFontSize(10);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
+      doc.text(`Semester: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`, 14, 34);
+      doc.text(`Minimum Attendance: ${minAttendance}%`, 14, 40);
+      
+      // Overall Statistics
+      const totalAttended = subjects.reduce((sum, s) => sum + s.attended, 0);
+      const totalMissed = subjects.reduce((sum, s) => sum + s.missed, 0);
+      const overallPercentage = (totalAttended + totalMissed) > 0 
+        ? ((totalAttended / (totalAttended + totalMissed)) * 100).toFixed(1)
+        : '0.0';
+      
+      doc.setFontSize(12);
+      doc.text('Overall Statistics', 14, 50);
+      doc.setFontSize(10);
+      doc.text(`Overall Attendance: ${overallPercentage}%`, 14, 56);
+      doc.text(`Total Hours Attended: ${totalAttended}`, 14, 62);
+      doc.text(`Total Hours Missed: ${totalMissed}`, 14, 68);
+      
+      // Subject Details
+      let yPosition = 80;
+      doc.setFontSize(12);
+      doc.text('Subject Details', 14, yPosition);
+      yPosition += 8;
+      
+      data.forEach((subject, index) => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text(`${index + 1}. ${subject.Subject}`, 14, yPosition);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        
+        yPosition += 5;
+        doc.text(`Hours Per Week: ${subject['Hours Per Week']}`, 20, yPosition);
+        yPosition += 4;
+        doc.text(`Scheduled Hours: ${subject['Scheduled Hours']} | Cancelled: ${subject['Cancelled Hours']} | Actual: ${subject['Actual Total Hours']}`, 20, yPosition);
+        yPosition += 4;
+        doc.text(`Attended: ${subject['Attended (hrs)']} hrs | Missed: ${subject['Missed (hrs)']} hrs | Remaining: ${subject['Remaining (hrs)']} hrs`, 20, yPosition);
+        yPosition += 4;
+        doc.text(`Attendance: ${subject['Attendance %']}% | Allowed Absences: ${subject['Allowed Absences (hrs)']} hrs | Can Still Skip: ${subject['Hours Can Still Skip']} hrs`, 20, yPosition);
+        yPosition += 8;
+      });
+      
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+        doc.text('SK TECH - Semester Attendance Calculator', 14, doc.internal.pageSize.height - 10);
+      }
+      
+      // Save
+      doc.save(`attendance-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('PDF exported successfully');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF');
+    }
   };
 
   const handleReset = () => {
@@ -262,10 +357,13 @@ export default function App() {
               </p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleReset}>
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset All
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="outline" onClick={handleReset}>
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset All
+            </Button>
+          </div>
         </div>
 
         {/* Configuration */}
@@ -318,6 +416,7 @@ export default function App() {
                       minAttendance={minAttendance}
                       onAttend={handleAttend}
                       onMiss={handleMiss}
+                      onReset={handleResetSubject}
                     />
                   );
                 })}
@@ -332,7 +431,8 @@ export default function App() {
                 getCancelledHours={getCancelledHoursForSubject}
                 totalWeeks={totalWeeks}
                 minAttendance={minAttendance}
-                onExport={handleExport}
+                onExportCSV={handleExportCSV}
+                onExportPDF={handleExportPDF}
               />
             </TabsContent>
           </Tabs>
@@ -349,6 +449,8 @@ export default function App() {
           </div>
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 }
