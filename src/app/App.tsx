@@ -4,8 +4,6 @@ import { SubjectManager, Subject } from "./components/SubjectManager";
 import { SubjectCard } from "./components/SubjectCard";
 import { AttendanceDashboard } from "./components/AttendanceDashboard";
 import { HolidayManager, Holiday, computeAutoHours } from "./components/HolidayManager";
-import { ActivityCalendarManager } from "./components/ActivityCalendarManager";
-import { HolidayImpactSummary } from "./components/HolidayImpactSummary";
 import {
   TimetableManager,
   Timetable,
@@ -217,27 +215,7 @@ export default function App() {
     }
   };
 
-  const handleAutoAddHolidays = (detectedHolidays: { name: string; startDate: string; endDate: string }[]) => {
-    const newHolidays: Holiday[] = [];
-    
-    detectedHolidays.forEach((dh, index) => {
-      // Check for duplicates
-      if (!holidays.some(h => h.startDate === dh.startDate && h.endDate === dh.endDate)) {
-        const { cancelledHours } = computeAutoHours(dh.startDate, dh.endDate, timetable, subjects, timeSlots);
-        newHolidays.push({
-          id: `auto_${Date.now()}_${index}`,
-          name: dh.name,
-          startDate: dh.startDate,
-          endDate: dh.endDate,
-          cancelledHours,
-        });
-      }
-    });
-
-    if (newHolidays.length > 0) {
-      setHolidays([...holidays, ...newHolidays]);
-    }
-  };
+  // Removed handleAutoAddHolidays
 
   const getExportData = () => {
     return subjects.map(subject => {
@@ -420,23 +398,16 @@ export default function App() {
           totalWeeks={totalWeeks}
         />
 
-        {/* Holiday and Activity Calendar Management */}
-        <div className="grid gap-6 lg:grid-cols-2 items-start">
-          <HolidayManager
-            holidays={holidays}
-            subjects={subjects}
-            timetable={timetable}
-            timeSlots={timeSlots}
-            onAddHoliday={handleAddHoliday}
-            onRemoveHoliday={handleRemoveHoliday}
-            totalWeeks={totalWeeks}
-          />
-          <ActivityCalendarManager 
-            startDate={startDate}
-            endDate={endDate}
-            onAddHolidays={handleAutoAddHolidays}
-          />
-        </div>
+        {/* Holiday Manager */}
+        <HolidayManager
+          holidays={holidays}
+          subjects={subjects}
+          timetable={timetable}
+          timeSlots={timeSlots}
+          onAddHoliday={handleAddHoliday}
+          onRemoveHoliday={handleRemoveHoliday}
+          totalWeeks={totalWeeks}
+        />
 
         {/* Subject Manager */}
         <SubjectManager
@@ -458,9 +429,8 @@ export default function App() {
         {/* Dashboard and Subject Cards */}
         {subjects.length > 0 && (
           <Tabs defaultValue="subjects" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-xl">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
               <TabsTrigger value="subjects">Subject Tracking</TabsTrigger>
-              <TabsTrigger value="calendar">Holiday Calendar</TabsTrigger>
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             </TabsList>
             
@@ -493,17 +463,6 @@ export default function App() {
               </div>
             </TabsContent>
             
-            <TabsContent value="calendar" className="space-y-6 mt-6">
-              <HolidayImpactSummary 
-                startDate={startDate}
-                endDate={endDate}
-                holidays={holidays}
-                subjects={subjects}
-                timetable={timetable}
-                timeSlots={timeSlots}
-              />
-            </TabsContent>
-
             <TabsContent value="dashboard" className="mt-6">
               <AttendanceDashboard
                 subjects={subjects}
