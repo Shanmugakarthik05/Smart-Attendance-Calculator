@@ -482,7 +482,7 @@ function AdminTimeSlotsPanel({
     toast.success(`"${slot.label}" added`);
   };
 
-  const PRESET_DURATIONS = [0.5, 1, 1.5, 2, 2.5, 3];
+  const PRESET_DURATIONS = [0.5, 0.75, 1, 1.5, 2, 2.5, 3];
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -518,8 +518,8 @@ function AdminTimeSlotsPanel({
                     <label className="text-xs font-medium text-muted-foreground">Duration (hours)</label>
                     <input
                       type="number"
-                      step="0.5"
-                      min="0.5"
+                      step="0.25"
+                      min="0.25"
                       max="6"
                       value={editHours}
                       onChange={(e) => setEditHours(Number(e.target.value))}
@@ -609,8 +609,8 @@ function AdminTimeSlotsPanel({
             <label className="text-xs font-medium text-muted-foreground">Duration (hours)</label>
             <input
               type="number"
-              step="0.5"
-              min="0.5"
+              step="0.25"
+              min="0.25"
               max="6"
               value={newHours}
               onChange={(e) => setNewHours(Number(e.target.value))}
@@ -620,7 +620,7 @@ function AdminTimeSlotsPanel({
         </div>
         {/* Quick presets for new slot */}
         <div className="flex flex-wrap gap-1.5">
-          {[0.5, 1, 1.5, 2, 2.5, 3].map(d => (
+          {[0.5, 0.75, 1, 1.5, 2, 2.5, 3].map(d => (
             <button key={d} onClick={() => setNewHours(d)}
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${newHours === d ? "border-indigo-500 text-indigo-500 bg-indigo-500/10" : "border-border hover:border-indigo-500/50"}`}>
               {d} hr{d !== 1 ? "s" : ""}

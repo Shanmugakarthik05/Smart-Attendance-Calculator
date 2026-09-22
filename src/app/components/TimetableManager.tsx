@@ -16,10 +16,12 @@ export interface TimeSlot {
 
 /** Default time slots — used when admin hasn't customised them */
 export const DEFAULT_TIME_SLOTS: TimeSlot[] = [
-  { id: "slot1", label: "8:00 – 10:00 AM", hours: 2 },
-  { id: "slot2", label: "10:00 AM – 12:00 PM", hours: 2 },
-  { id: "slot3", label: "1:00 – 3:00 PM", hours: 2 },
-  { id: "slot4", label: "3:00 – 5:00 PM", hours: 2 },
+  { id: "slot1", label: "8:00 AM to 9:30 AM", hours: 1.5 },
+  { id: "slot2", label: "9:45 AM to 11:15 AM", hours: 1.5 },
+  { id: "slot3", label: "11:30 AM to 12:15 PM", hours: 0.75 },
+  { id: "slot4", label: "12:15 PM to 1:00 PM", hours: 0.75 },
+  { id: "slot5", label: "1:15 PM to 2:45 PM", hours: 1.5 },
+  { id: "slot6", label: "3:00 PM to 4:30 PM", hours: 1.5 },
 ];
 
 // Keep backward-compat alias used elsewhere
