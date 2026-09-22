@@ -98,7 +98,7 @@ export default function App() {
         const data = JSON.parse(userSaved);
         setStartDate(data.startDate || defaultDates.start);
         setEndDate(data.endDate || defaultDates.end);
-        setMinAttendance(data.minAttendance || 75);
+        setMinAttendance(data.minAttendance || 80);
         setSubjects(data.subjects || []);
         setHolidays(data.holidays || []);
         setTimetable(data.timetable || {});
@@ -352,7 +352,7 @@ export default function App() {
       const defaultDates = getDefaultDates();
       setStartDate(defaultDates.start);
       setEndDate(defaultDates.end);
-      setMinAttendance(75);
+      setMinAttendance(80);
       setSubjects([]);
       setHolidays([]);
       setTimetable({});
