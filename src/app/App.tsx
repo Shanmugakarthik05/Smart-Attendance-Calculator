@@ -20,7 +20,7 @@ import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
-import { RotateCcw, GraduationCap, ShieldCheck } from "lucide-react";
+import { RotateCcw, GraduationCap, ShieldCheck, UserCog } from "lucide-react";
 
 export default function App() {
   // Get dates for default semester (current date + 16 weeks)
@@ -449,6 +449,10 @@ export default function App() {
               </div>
             )}
             <ThemeToggle />
+            <Button variant="outline" onClick={() => window.location.href = '/admin'}>
+              <UserCog className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Admin</span>
+            </Button>
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
               Reset All

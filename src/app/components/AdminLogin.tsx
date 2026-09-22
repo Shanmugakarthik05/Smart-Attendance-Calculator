@@ -23,9 +23,14 @@ export function AdminLogin() {
     setLoading(false);
 
     if (!success) {
-      setError("Invalid admin ID or password.");
+      setError("Access Denied: Redirecting to user dashboard...");
       setShake(true);
       setTimeout(() => setShake(false), 600);
+      
+      // Auto-redirect to user dashboard after showing the message
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
     }
   };
 
