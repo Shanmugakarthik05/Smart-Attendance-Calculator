@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { ADMIN_CONFIG_KEY, ADMIN_CHANNEL } from "./components/AdminDashboard";
 import { SemesterForm } from "./components/SemesterForm";
 import { SubjectManager, Subject } from "./components/SubjectManager";
 import { SubjectCard } from "./components/SubjectCard";
@@ -20,7 +19,7 @@ import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
-import { RotateCcw, GraduationCap, ShieldCheck, UserCog } from "lucide-react";
+import { RotateCcw, GraduationCap } from "lucide-react";
 
 export default function App() {
   // Get dates for default semester (current date + 16 weeks)
@@ -43,7 +42,6 @@ export default function App() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [timetable, setTimetable] = useState<Timetable>({});
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(DEFAULT_TIME_SLOTS);
-  const [adminPublishedAt, setAdminPublishedAt] = useState<string | null>(null);
 
   // Calculate total weeks
   const calculateTotalWeeks = () => {
@@ -92,83 +90,28 @@ export default function App() {
     return Math.max(0, scheduledHours - cancelledHours);
   };
 
-  // Merge admin config into local state
-  // NOTE: Admin does NOT control user's semester dates or minAttendance — user owns those.
-  // Admin controls: subjects, timetable, holidays, timeSlots
-  const mergeAdminConfig = useCallback((adminData: any, currentSubjects: Subject[]) => {
-    if (!adminData) return;
-    // Sync admin-controlled fields only
-    setTimetable(adminData.timetable || {});
-    setHolidays(adminData.holidays || []);
-    setAdminPublishedAt(adminData.publishedAt || null);
-    if (adminData.timeSlots && adminData.timeSlots.length > 0) {
-      setTimeSlots(adminData.timeSlots);
-    }
-    // Merge subjects: keep user's attended/missed for matching subject IDs
-    if (adminData.subjects) {
-      setSubjects(adminData.subjects.map((as: Subject) => {
-        const existing = currentSubjects.find(s => s.id === as.id);
-        return { ...as, attended: existing?.attended ?? 0, missed: existing?.missed ?? 0 };
-      }));
-    }
-  }, []);
-
-  // Load data from localStorage — user dates are always from userSaved; admin controls subjects/timetable/holidays/timeSlots
+  // Load data from localStorage
   useEffect(() => {
-    const adminSaved = localStorage.getItem(ADMIN_CONFIG_KEY);
     const userSaved = localStorage.getItem('attendanceData');
-
-    // Always load user's own dates and minAttendance from their own storage
     if (userSaved) {
       try {
         const data = JSON.parse(userSaved);
         setStartDate(data.startDate || defaultDates.start);
         setEndDate(data.endDate || defaultDates.end);
         setMinAttendance(data.minAttendance || 75);
-        // Load user-tracked subjects (for attended/missed)
-        if (!adminSaved) {
-          setSubjects(data.subjects || []);
-          setHolidays(data.holidays || []);
-          setTimetable(data.timetable || {});
-        }
+        setSubjects(data.subjects || []);
+        setHolidays(data.holidays || []);
+        setTimetable(data.timetable || {});
+        if (data.timeSlots) setTimeSlots(data.timeSlots);
       } catch (e) { console.error('Error loading user data:', e); }
-    }
-
-    // Override subjects/timetable/holidays/timeSlots from admin if published
-    if (adminSaved) {
-      try {
-        const adminData = JSON.parse(adminSaved);
-        const currentSubjects: Subject[] = userSaved ? (JSON.parse(userSaved).subjects || []) : [];
-        mergeAdminConfig(adminData, currentSubjects);
-      } catch (e) { console.error('Error loading admin config:', e); }
     }
   }, []);
 
-  // Listen for live admin publishes via BroadcastChannel
+  // Save user's data to localStorage
   useEffect(() => {
-    let bc: BroadcastChannel | null = null;
-    try {
-      bc = new BroadcastChannel(ADMIN_CHANNEL);
-      bc.onmessage = (event) => {
-        if (event.data?.type === 'ADMIN_PUBLISHED') {
-          setSubjects(prev => {
-            mergeAdminConfig(event.data.config, prev);
-            return prev;
-          });
-          toast.info('Admin updated subjects & timetable', {
-            description: 'Your semester dates are unchanged.',
-          });
-        }
-      };
-    } catch { /* BroadcastChannel not supported */ }
-    return () => { try { bc?.close(); } catch { /* ignore */ } };
-  }, [mergeAdminConfig]);
-
-  // Save user's own data to localStorage (dates, minAttendance, attendance counts)
-  useEffect(() => {
-    const data = { startDate, endDate, minAttendance, subjects, holidays, timetable };
+    const data = { startDate, endDate, minAttendance, subjects, holidays, timetable, timeSlots };
     localStorage.setItem('attendanceData', JSON.stringify(data));
-  }, [startDate, endDate, minAttendance, subjects, holidays]);
+  }, [startDate, endDate, minAttendance, subjects, holidays, timetable, timeSlots]);
 
   // Check for low attendance and show notifications
   useEffect(() => {
@@ -434,25 +377,7 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {adminPublishedAt && (
-              <div
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-                style={{
-                  background: "rgba(99,102,241,0.1)",
-                  border: "1px solid rgba(99,102,241,0.3)",
-                  color: "#818cf8",
-                }}
-                title={`Admin published at ${new Date(adminPublishedAt).toLocaleString()}`}
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Admin Config Active
-              </div>
-            )}
             <ThemeToggle />
-            <Button variant="outline" onClick={() => window.location.href = '/admin'}>
-              <UserCog className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Admin</span>
-            </Button>
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="h-4 w-4 mr-2" />
               Reset All

@@ -96,7 +96,7 @@ interface HolidayManagerProps {
   onAddHoliday: (holiday: Omit<Holiday, "id">) => void;
   onRemoveHoliday: (id: string) => void;
   totalWeeks: number;
-  /** Custom time slots from admin config */
+  /** Custom time slots */
   timeSlots?: TimeSlot[];
 }
 

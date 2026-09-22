@@ -14,7 +14,7 @@ export interface TimeSlot {
   hours: number;
 }
 
-/** Default time slots — used when admin hasn't customised them */
+/** Default time slots */
 export const DEFAULT_TIME_SLOTS: TimeSlot[] = [
   { id: "slot1", label: "8:00 AM to 9:30 AM", hours: 1.5 },
   { id: "slot2", label: "9:45 AM to 11:15 AM", hours: 1.5 },
@@ -52,7 +52,7 @@ interface TimetableManagerProps {
   subjects: Subject[];
   dayCounts: Record<string, number>;
   onTimetableChange: (timetable: Timetable) => void;
-  /** Custom time slots from admin config; falls back to DEFAULT_TIME_SLOTS */
+  /** Custom time slots; falls back to DEFAULT_TIME_SLOTS */
   timeSlots?: TimeSlot[];
 }
 
