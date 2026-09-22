@@ -3,7 +3,9 @@ import { SemesterForm } from "./components/SemesterForm";
 import { SubjectManager, Subject } from "./components/SubjectManager";
 import { SubjectCard } from "./components/SubjectCard";
 import { AttendanceDashboard } from "./components/AttendanceDashboard";
-import { HolidayManager, Holiday } from "./components/HolidayManager";
+import { HolidayManager, Holiday, computeAutoHours } from "./components/HolidayManager";
+import { ActivityCalendarManager } from "./components/ActivityCalendarManager";
+import { HolidayImpactSummary } from "./components/HolidayImpactSummary";
 import {
   TimetableManager,
   Timetable,
@@ -212,6 +214,28 @@ export default function App() {
       toast.info(`${holiday.name} removed`, {
         description: 'Total hours recalculated',
       });
+    }
+  };
+
+  const handleAutoAddHolidays = (detectedHolidays: { name: string; startDate: string; endDate: string }[]) => {
+    const newHolidays: Holiday[] = [];
+    
+    detectedHolidays.forEach((dh, index) => {
+      // Check for duplicates
+      if (!holidays.some(h => h.startDate === dh.startDate && h.endDate === dh.endDate)) {
+        const { cancelledHours } = computeAutoHours(dh.startDate, dh.endDate, timetable, subjects, timeSlots);
+        newHolidays.push({
+          id: `auto_${Date.now()}_${index}`,
+          name: dh.name,
+          startDate: dh.startDate,
+          endDate: dh.endDate,
+          cancelledHours,
+        });
+      }
+    });
+
+    if (newHolidays.length > 0) {
+      setHolidays([...holidays, ...newHolidays]);
     }
   };
 
@@ -427,8 +451,9 @@ export default function App() {
         {/* Dashboard and Subject Cards */}
         {subjects.length > 0 && (
           <Tabs defaultValue="subjects" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsList className="grid w-full grid-cols-3 max-w-xl">
               <TabsTrigger value="subjects">Subject Tracking</TabsTrigger>
+              <TabsTrigger value="calendar">Calendar & AI</TabsTrigger>
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             </TabsList>
             
@@ -461,6 +486,22 @@ export default function App() {
               </div>
             </TabsContent>
             
+            <TabsContent value="calendar" className="space-y-6 mt-6">
+              <ActivityCalendarManager 
+                startDate={startDate}
+                endDate={endDate}
+                onAddHolidays={handleAutoAddHolidays}
+              />
+              <HolidayImpactSummary 
+                startDate={startDate}
+                endDate={endDate}
+                holidays={holidays}
+                subjects={subjects}
+                timetable={timetable}
+                timeSlots={timeSlots}
+              />
+            </TabsContent>
+
             <TabsContent value="dashboard" className="mt-6">
               <AttendanceDashboard
                 subjects={subjects}

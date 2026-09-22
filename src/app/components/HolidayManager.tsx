@@ -31,7 +31,7 @@ interface DayBreakdown {
   subjects: { subjectId: string; name: string; hours: number }[];
 }
 
-function computeAutoHours(
+export function computeAutoHours(
   startDate: string,
   endDate: string,
   timetable: Timetable,
