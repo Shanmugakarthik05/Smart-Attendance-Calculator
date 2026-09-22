@@ -420,16 +420,23 @@ export default function App() {
           totalWeeks={totalWeeks}
         />
 
-        {/* Holiday Manager */}
-        <HolidayManager
-          holidays={holidays}
-          subjects={subjects}
-          timetable={timetable}
-          timeSlots={timeSlots}
-          onAddHoliday={handleAddHoliday}
-          onRemoveHoliday={handleRemoveHoliday}
-          totalWeeks={totalWeeks}
-        />
+        {/* Holiday and Activity Calendar Management */}
+        <div className="grid gap-6 lg:grid-cols-2 items-start">
+          <HolidayManager
+            holidays={holidays}
+            subjects={subjects}
+            timetable={timetable}
+            timeSlots={timeSlots}
+            onAddHoliday={handleAddHoliday}
+            onRemoveHoliday={handleRemoveHoliday}
+            totalWeeks={totalWeeks}
+          />
+          <ActivityCalendarManager 
+            startDate={startDate}
+            endDate={endDate}
+            onAddHolidays={handleAutoAddHolidays}
+          />
+        </div>
 
         {/* Subject Manager */}
         <SubjectManager
@@ -453,7 +460,7 @@ export default function App() {
           <Tabs defaultValue="subjects" className="w-full">
             <TabsList className="grid w-full grid-cols-3 max-w-xl">
               <TabsTrigger value="subjects">Subject Tracking</TabsTrigger>
-              <TabsTrigger value="calendar">Calendar & AI</TabsTrigger>
+              <TabsTrigger value="calendar">Holiday Calendar</TabsTrigger>
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             </TabsList>
             
@@ -487,11 +494,6 @@ export default function App() {
             </TabsContent>
             
             <TabsContent value="calendar" className="space-y-6 mt-6">
-              <ActivityCalendarManager 
-                startDate={startDate}
-                endDate={endDate}
-                onAddHolidays={handleAutoAddHolidays}
-              />
               <HolidayImpactSummary 
                 startDate={startDate}
                 endDate={endDate}
