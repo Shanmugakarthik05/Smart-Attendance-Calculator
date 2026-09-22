@@ -112,12 +112,40 @@ export function ActivityCalendarManager({ startDate, endDate, onAddHolidays }: A
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [detectedHolidays, setDetectedHolidays] = useState<DetectedHoliday[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-      setDetectedHolidays([]); // Reset previous detections
+      handleNewFile(e.target.files[0]);
+    }
+  };
+
+  const handleNewFile = (file: File) => {
+    if (file.type !== "application/pdf") {
+      toast.error("Please upload a PDF file.");
+      return;
+    }
+    setSelectedFile(file);
+    setDetectedHolidays([]); // Reset previous detections
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleNewFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -227,8 +255,11 @@ export function ActivityCalendarManager({ startDate, endDate, onAddHolidays }: A
         <div className="space-y-4">
           <div 
             onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
             className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
-              ${selectedFile ? 'border-indigo-500 bg-indigo-500/5' : 'border-border hover:border-indigo-500/50 hover:bg-muted/50'}`}
+              ${isDragging ? 'border-indigo-500 bg-indigo-500/10' : selectedFile ? 'border-indigo-500 bg-indigo-500/5' : 'border-border hover:border-indigo-500/50 hover:bg-muted/50'}`}
           >
             <input 
               type="file" 
@@ -251,7 +282,9 @@ export function ActivityCalendarManager({ startDate, endDate, onAddHolidays }: A
                   <UploadCloud className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-medium">Click to upload your Calendar</p>
+                  <p className="font-medium">
+                    {isDragging ? "Drop your Calendar here" : "Click or drag to upload your Calendar"}
+                  </p>
                   <p className="text-sm text-muted-foreground mt-1">Supports PDF format</p>
                 </div>
               </div>
